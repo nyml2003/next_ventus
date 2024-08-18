@@ -1,5 +1,9 @@
-import React, { LazyExoticComponent } from 'react'
 export interface RouteConfig {
-	path: string
-	element: LazyExoticComponent<React.ComponentType<unknown>>
+  path: string
+  element: React.LazyExoticComponent<() => React.JSX.Element>
+  children?: () => Promise<any>
+}
+export enum DarkMode {
+  Light = 'light',
+  Dark = 'dark',
 }

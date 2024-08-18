@@ -1,11 +1,7 @@
 import React from 'react'
-import Router from '@/router'
-import { routes } from '@/router/routes'
+import Router from '@/components/Router'
+import routes from '@/router'
 const App: React.FC = () => {
-	return (
-		<div className="App">
-			<Router routes={routes} isRoot />
-		</div>
-	)
+  return <Router routes={routes} isRoot />
 }
 export default App

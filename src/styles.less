@@ -8,10 +8,11 @@ body {
 
 @font-face {
   font-family: 'JetBrains Mono';
-  src: url('assets/fonts/JetBrainsMono-Regular.woff2') format('woff2');
-  font-weight: normal;
   font-style: normal;
+  font-weight: normal;
+  src: url('assets/fonts/JetBrainsMono-Regular.woff2') format('woff2');
 }
+
 /* 字体：微软雅黑 */
 .font-microsoft-yahei {
     font-family: "Microsoft YaHei", sans-serif;
@@ -19,7 +20,7 @@ body {
 
 /* 字体：仿宋GB2312 */
 .font-fangsong {
-    font-family: "FangSong", sans-serif;
+    font-family: FangSong, sans-serif;
 }
 
 /* 字体：JetBrains Mono */
@@ -30,11 +31,12 @@ body {
 .separator-container {
     .separator-item {
         &:not(:first-child)::before {
-            content: '|';
             margin: 0 10px;
             color: #e5e5e5;
+            content: '|';
         }
-        color: #000000;
+
+        color: #000;
     }
 }
 
