@@ -30,6 +30,9 @@ const EntryLayout = () => {
               <Link to='/game'>
                 <Nav.Item icon={<IconGame />} text='Game' itemKey={'game'} />
               </Link>
+              <Link to='/test'>
+                <Nav.Item icon={<IconGame />} text='Test' itemKey={'test'} />
+              </Link>
             </Space>
           </Nav.Header>
           <Nav.Footer>
@@ -71,7 +74,6 @@ const EntryLayout = () => {
         </Nav>
       </Header>
       <Content className='flex-1'>
-        <Router routes={routes} />
         <Outlet />
       </Content>
       <Footer>Footer</Footer>

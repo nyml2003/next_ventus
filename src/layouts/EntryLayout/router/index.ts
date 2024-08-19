@@ -2,7 +2,7 @@ import { lazy } from 'react'
 import { RouteConfig } from '@/types'
 const routes: RouteConfig[] = [
   {
-    path: '/game',
+    path: 'game',
     element: lazy(() => import('../pages/GamePage')),
   },
 ]

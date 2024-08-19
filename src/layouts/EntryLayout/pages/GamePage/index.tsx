@@ -7,7 +7,7 @@ import { ApiEnum } from '@/hooks/useApi/apis'
 
 const fetchMaze = async (request: GetMazeRequest): Promise<GetMazeResponse> => {
   const { api } = useApi()
-  const res = (await api.handle(ApiEnum.GetMaze, request)) as GetMazeResponse
+  const res = (await api.request(ApiEnum.GetMaze, request)) as GetMazeResponse
   return res
 }
 
