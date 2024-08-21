@@ -3,24 +3,14 @@
 @tailwind utilities;
 
 body {
-	@apply bg-gray-100 font-sans antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+	@apply bg-gray-100 font-chinese;
 }
 
 @font-face {
   font-family: 'JetBrains Mono';
-  font-style: normal;
-  font-weight: normal;
   src: url('assets/fonts/JetBrainsMono-Regular.woff2') format('woff2');
-}
-
-/* 字体：微软雅黑 */
-.font-microsoft-yahei {
-    font-family: "Microsoft YaHei", sans-serif;
-}
-
-/* 字体：仿宋GB2312 */
-.font-fangsong {
-    font-family: FangSong, sans-serif;
 }
 
 /* 字体：JetBrains Mono */

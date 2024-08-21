@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import './typewriter.less'
-const TypingWriter = ({
-  text,
-  status,
-}: {
+interface TypingWriterProps {
   text: string
   status: 'doing' | 'rollback' | 'done'
-}) => {
+  className?: string
+}
+
+const TypingWriter = (props: TypingWriterProps) => {
+  const { text, status, className } = props
   const [displayedText, setDisplayedText] = useState('')
   const [index, setIndex] = useState(0)
 
@@ -25,7 +25,12 @@ const TypingWriter = ({
     return () => clearTimeout(timeoutId)
   }, [updateText])
 
-  return <div className='multiline text typing-effect select-none'>{displayedText}</div>
+  return (
+    <div
+      className={`text-sm text-gray-500 block whitespace-pre-wrap break-all select-none ${className}`}>
+      {displayedText}
+    </div>
+  )
 }
 
 export default TypingWriter

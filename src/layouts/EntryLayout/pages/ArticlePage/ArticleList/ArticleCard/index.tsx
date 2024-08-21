@@ -1,38 +1,42 @@
-import { ArticleInfo } from '@/hooks/useApi/apis/GetArticleList'
-import { IconEdit, IconEyeOpened, IconPlusCircle } from '@douyinfe/semi-icons'
-import { Card } from '@douyinfe/semi-ui'
-import React, { useCallback } from 'react'
-import TypingWriter from '@/components/TypeWriter'
+import { ArticleInfo } from '@/hooks/useApi/apis/GetArticleList';
+import { IconEdit, IconEyeOpened, IconPlusCircle } from '@douyinfe/semi-icons';
+import { Card } from '@douyinfe/semi-ui';
+import React, { useCallback } from 'react';
+import TypingWriter from '@/components/TypeWriter';
 
 interface ArticleCardProps {
-  article: ArticleInfo
+  article: ArticleInfo;
+  className?: string;
 }
 
 const ArticleCard: React.FC<ArticleCardProps> = (props: ArticleCardProps) => {
-  const { article } = props
-  const { title, description, tags, views, created_at, updated_at } = article
+  const { article } = props;
+  const { title, description, tags, views, created_at, updated_at } = article;
   const [descriptionStatus, setDescriptionStatus] = React.useState<'doing' | 'rollback' | 'done'>(
     'done',
-  )
+  );
   const handleMouseEnter = useCallback(() => {
-    setDescriptionStatus('doing')
-  }, [])
+    setDescriptionStatus('doing');
+  }, []);
 
   const handleMouseLeave = useCallback(() => {
-    setDescriptionStatus('rollback')
-  }, [])
+    setDescriptionStatus('rollback');
+  }, []);
   return (
     <div onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       <Card
         className='
-      cursor-pointer
-      mx-16 my-8
-      rounded-lg 
-      hover:shadow-lg 
-       transform transition duration-500 hover:scale-105'
+            cursor-pointer
+            mx-16 my-8
+            rounded-lg 
+            hover:shadow-lg 
+            transform 
+            transition 
+            duration-500 
+            hover:scale-105'
         header={
           <div className='flex justify-between'>
-            <div className='text-xl font-semibold text-gray-800 flex items-center gap-2'>
+            <div className='text-xl font-bold text-gray-800 flex items-center gap-2'>
               <div>{title}</div>
               {tags.map(tag => (
                 <span
@@ -58,12 +62,10 @@ const ArticleCard: React.FC<ArticleCardProps> = (props: ArticleCardProps) => {
             </div>
           </div>
         }>
-        <div className='text-sm text-gray-500 w-full'>
-          <TypingWriter text={description} status={descriptionStatus} />
-        </div>
+        <TypingWriter text={description} status={descriptionStatus} />
       </Card>
     </div>
-  )
-}
+  );
+};
 
-export default ArticleCard
+export default ArticleCard;

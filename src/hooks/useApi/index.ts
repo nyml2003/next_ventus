@@ -1,65 +1,103 @@
-import { ApiConfig, ApiEnum, ApiMap } from './apis'
-import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
-import { throttle } from 'lodash'
-type FulfillInterceptor<V> = (value: V) => V | Promise<V>
+import { ApiConfig, ApiEnum, ApiMap } from './apis';
+import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import { throttle } from 'lodash';
+import { useCallback, useState } from 'react';
+type FulfillInterceptor<V> = (value: V) => V | Promise<V>;
 
-type RequestFulfillInterceptor = FulfillInterceptor<InternalAxiosRequestConfig>
-type RequestRejectInterceptor = (error: any) => any
+type RequestFulfillInterceptor = FulfillInterceptor<InternalAxiosRequestConfig>;
+type RequestRejectInterceptor = (error: any) => any;
 
-type ResponseFulfillInterceptor = FulfillInterceptor<AxiosResponse>
-type ResponseRejectInterceptor = (error: any) => any
+type ResponseFulfillInterceptor = FulfillInterceptor<AxiosResponse>;
+type ResponseRejectInterceptor = (error: any) => any;
 
 type RequestInterceptor = {
-  fulfill: (api?: Api) => RequestFulfillInterceptor
-  reject?: (api?: Api) => RequestRejectInterceptor
-}
+  fulfill: (api?: Api) => RequestFulfillInterceptor;
+  reject?: (api?: Api) => RequestRejectInterceptor;
+};
 
 type ResponseInterceptor = {
-  fulfill: (api?: Api) => ResponseFulfillInterceptor
-  reject?: (api?: Api) => ResponseRejectInterceptor
-}
+  fulfill: (api?: Api) => ResponseFulfillInterceptor;
+  reject?: (api?: Api) => ResponseRejectInterceptor;
+};
 
 interface Api {
-  instance: AxiosInstance
-  controller: AbortController
-  request<Request, Response>(apiEnum: ApiEnum, request: Request): Promise<Response>
-  get<Request, Response>(apiEnum: ApiEnum, request: Request): Promise<Response>
-  post<Request, Response>(apiEnum: ApiEnum, request: Request): Promise<Response>
-  addRequestInterceptor(interceptor: RequestInterceptor): void
-  addResponseInterceptor(interceptor: ResponseInterceptor): void
+  instance: AxiosInstance;
+  controller: AbortController;
+  request<Request, Response>(apiEnum: ApiEnum, request: Request): Promise<Response>;
+  get<Request, Response>(apiEnum: ApiEnum, request: Request): Promise<Response>;
+  post<Request, Response>(apiEnum: ApiEnum, request: Request): Promise<Response>;
+  addRequestInterceptor(interceptor: RequestInterceptor): void;
+  addResponseInterceptor(interceptor: ResponseInterceptor): void;
 }
 
-export const throttleInterceptor: (interval: number) => RequestInterceptor = interval => ({
+const useRequestLimiter = (interval: number) => {
+  const [isRequestAllowed, setIsRequestAllowed] = useState(true);
+
+  const limitRequest = useCallback(
+    config => {
+      if (!isRequestAllowed) {
+        return Promise.reject(new Error('请求次数过多'));
+      }
+
+      setIsRequestAllowed(false);
+      setTimeout(() => {
+        setIsRequestAllowed(true);
+      }, 1000);
+
+      return config;
+    },
+    [isRequestAllowed],
+  );
+
+  return limitRequest;
+};
+
+export const throttleInterceptor: (interval: number) => RequestInterceptor = (
+  interval: number,
+) => ({
   fulfill: () => {
-    return throttle((config: InternalAxiosRequestConfig) => {
-      return config
-    }, interval)
+    const [isRequestAllowed, setIsRequestAllowed] = useState(true);
+    const limitRequest = useCallback(
+      (config: InternalAxiosRequestConfig) => {
+        if (!isRequestAllowed) {
+          return Promise.reject(new Error('请求次数过多'));
+        }
+        setIsRequestAllowed(false);
+        setTimeout(() => {
+          setIsRequestAllowed(true);
+        }, interval);
+        return config;
+      },
+      [isRequestAllowed],
+    );
+
+    return limitRequest;
   },
   reject: () => {
     return (error: any) => {
-      return Promise.reject(error)
-    }
+      return Promise.reject(error);
+    };
   },
-})
+});
 
 export const handle404Interceptor: () => ResponseInterceptor = () => ({
   fulfill: () => {
     return (response: AxiosResponse) => {
-      return response
-    }
+      return response;
+    };
   },
   reject: (api?: Api) => {
     return (error: any) => {
       if (error.response.status === 404) {
-        api?.controller.abort()
+        api?.controller.abort();
         return Promise.reject(
           'The resource you are looking for does not exist. Please check the URL and try again.',
-        )
+        );
       }
-      return Promise.reject(error)
-    }
+      return Promise.reject(error);
+    };
   },
-})
+});
 
 export const useApi = () => {
   const api: Api = {
@@ -69,42 +107,42 @@ export const useApi = () => {
     }),
     controller: new AbortController(),
     async request<Request, Response>(apiEnum: ApiEnum, request: Request): Promise<Response> {
-      const config: ApiConfig = ApiMap[apiEnum]
+      const config: ApiConfig = ApiMap[apiEnum];
       switch (config.method) {
         case 'GET': {
-          return this.get(apiEnum, request)
+          return this.get(apiEnum, request);
         }
         case 'POST': {
-          return this.post(apiEnum, request)
+          return this.post(apiEnum, request);
         }
       }
     },
     async get<Request, Response>(apiEnum: ApiEnum, request: Request): Promise<Response> {
-      const config: ApiConfig = ApiMap[apiEnum]
+      const config: ApiConfig = ApiMap[apiEnum];
       const response = await this.instance.get(config.url, {
         params: request,
-      })
-      return response.data
+      });
+      return response.data;
     },
     async post<Request, Response>(apiEnum: ApiEnum, request: Request): Promise<Response> {
-      const config: ApiConfig = ApiMap[apiEnum]
-      const response = await this.instance.post(config.url, request)
-      return response.data
+      const config: ApiConfig = ApiMap[apiEnum];
+      const response = await this.instance.post(config.url, request);
+      return response.data;
     },
     addRequestInterceptor(interceptor: RequestInterceptor) {
-      const fulfilled = interceptor.fulfill(this)
-      const rejected = interceptor.reject && interceptor.reject(this)
-      this.instance.interceptors.request.use(fulfilled, rejected)
+      const fulfilled = interceptor.fulfill(this);
+      const rejected = interceptor.reject && interceptor.reject(this);
+      this.instance.interceptors.request.use(fulfilled, rejected);
     },
     addResponseInterceptor(interceptor: ResponseInterceptor) {
-      const fulfilled = interceptor.fulfill(this)
-      const rejected = interceptor.reject && interceptor.reject(this)
-      this.instance.interceptors.response.use(fulfilled, rejected)
+      const fulfilled = interceptor.fulfill(this);
+      const rejected = interceptor.reject && interceptor.reject(this);
+      this.instance.interceptors.response.use(fulfilled, rejected);
     },
-  }
-  api.addRequestInterceptor(throttleInterceptor(5000))
-  api.addResponseInterceptor(handle404Interceptor())
+  };
+  api.addRequestInterceptor(throttleInterceptor(500));
+  api.addResponseInterceptor(handle404Interceptor());
   return {
     api,
-  }
-}
+  };
+};
