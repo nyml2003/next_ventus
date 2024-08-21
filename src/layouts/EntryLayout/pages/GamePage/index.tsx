@@ -1,33 +1,33 @@
-import { useApi } from '@/hooks/useApi'
-import React, { useState, useEffect } from 'react'
-import MazeComponent from './Maze'
-import { Button } from '@douyinfe/semi-ui'
-import { GetMazeResponse, GetMazeRequest } from '@/hooks/useApi/apis/GetMaze'
-import { ApiEnum } from '@/hooks/useApi/apis'
+import { useApi } from '@/hooks/useApi';
+import React, { useState, useEffect } from 'react';
+import MazeComponent from './Maze';
+import { Button } from '@douyinfe/semi-ui';
+import { GetMazeResponse, GetMazeRequest } from '@/apis/GetMaze';
+import { ApiEnum } from '@/apis';
 
 const fetchMaze = async (request: GetMazeRequest): Promise<GetMazeResponse> => {
-  const { api } = useApi()
-  const res = (await api.request(ApiEnum.GetMaze, request)) as GetMazeResponse
-  return res
-}
+  const { api } = useApi();
+  const res = (await api.request(ApiEnum.GetMaze, request)) as GetMazeResponse;
+  return res;
+};
 
 const Maze = () => {
-  const [maze, setMaze] = useState<GetMazeResponse | null>(null)
-  const [visiualLength, setVisiualLength] = useState<number>(2)
-  const [row, setRow] = useState<number>(11)
-  const [col, setCol] = useState<number>(11)
+  const [maze, setMaze] = useState<GetMazeResponse | null>(null);
+  const [visiualLength, setVisiualLength] = useState<number>(2);
+  const [row, setRow] = useState<number>(11);
+  const [col, setCol] = useState<number>(11);
   const handleWin = () => {
-    setRow(row + 2)
-    setCol(col + 2)
-  }
+    setRow(row + 2);
+    setCol(col + 2);
+  };
   const handleIncreaseVisiualLength = () => {
-    setVisiualLength(visiualLength + 1)
-  }
+    setVisiualLength(visiualLength + 1);
+  };
   useEffect(() => {
     fetchMaze({ row, col }).then(res => {
-      setMaze(res)
-    })
-  }, [])
+      setMaze(res);
+    });
+  }, []);
   return (
     <>
       <Button onClick={handleWin}>Win</Button>
@@ -44,8 +44,8 @@ const Maze = () => {
         />
       )}
     </>
-  )
-}
+  );
+};
 
 const GamePage = () => {
   return (
@@ -53,7 +53,7 @@ const GamePage = () => {
       <h1 className='text-2xl font-bold'>Game Page</h1>
       <Maze />
     </div>
-  )
-}
+  );
+};
 
-export default GamePage
+export default GamePage;

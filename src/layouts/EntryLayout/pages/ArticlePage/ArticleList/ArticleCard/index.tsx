@@ -1,4 +1,4 @@
-import { ArticleInfo } from '@/hooks/useApi/apis/GetArticleList';
+import { ArticleInfo } from '@/apis/GetArticleList';
 import { IconEdit, IconEyeOpened, IconPlusCircle } from '@douyinfe/semi-icons';
 import { Card } from '@douyinfe/semi-ui';
 import React, { useCallback } from 'react';

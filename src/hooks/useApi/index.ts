@@ -1,7 +1,8 @@
-import { ApiConfig, ApiEnum, ApiMap } from './apis';
+import { ApiConfig, ApiEnum, ApiMap } from '@/apis';
 import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-import { throttle } from 'lodash';
-import { useCallback, useState } from 'react';
+import { reject } from 'lodash';
+import { message } from 'antd';
+import { IngoreError } from '@/types';
 type FulfillInterceptor<V> = (value: V) => V | Promise<V>;
 
 type RequestFulfillInterceptor = FulfillInterceptor<InternalAxiosRequestConfig>;
@@ -11,16 +12,17 @@ type ResponseFulfillInterceptor = FulfillInterceptor<AxiosResponse>;
 type ResponseRejectInterceptor = (error: any) => any;
 
 type RequestInterceptor = {
-  fulfill: (api?: Api) => RequestFulfillInterceptor;
-  reject?: (api?: Api) => RequestRejectInterceptor;
+  fulfill: (api: Api) => RequestFulfillInterceptor;
+  reject?: (api: Api) => RequestRejectInterceptor;
 };
 
 type ResponseInterceptor = {
-  fulfill: (api?: Api) => ResponseFulfillInterceptor;
-  reject?: (api?: Api) => ResponseRejectInterceptor;
+  fulfill: (api: Api) => ResponseFulfillInterceptor;
+  reject?: (api: Api) => ResponseRejectInterceptor;
 };
 
 interface Api {
+  lastRequestTime: number;
   instance: AxiosInstance;
   controller: AbortController;
   request<Request, Response>(apiEnum: ApiEnum, request: Request): Promise<Response>;
@@ -30,69 +32,69 @@ interface Api {
   addResponseInterceptor(interceptor: ResponseInterceptor): void;
 }
 
-const useRequestLimiter = (interval: number) => {
-  const [isRequestAllowed, setIsRequestAllowed] = useState(true);
+// export const throttleInterceptor = (interval: number, api: Api): RequestInterceptor => {
+//   if (interval <= 0) {
+//     return {
+//       fulfill: () => (config: InternalAxiosRequestConfig) => {
+//         return config;
+//       },
+//       reject: () => (error: any) => {
+//         return Promise.reject(error);
+//       },
+//     };
+//   }
+//   return {
+//     fulfill: (api: Api) => (config: InternalAxiosRequestConfig) => {
+//       return new Promise((resolve, reject) => {
+//         const now = Date.now();
+//         //计算经过的时间
+//         const timePassed = now - api.lastRequestTime;
+//         if (timePassed < interval) {
+//           setTimeout(() => {
+//             resolve(config);
+//           }, interval - timePassed);
+//           reject(new Error('请求次数过多'));
+//         } else {
+//           api.lastRequestTime = now;
+//           resolve(config);
+//         }
+//       });
+//     },
+//     reject: (api: Api) => (error: any) => {
+//       return new Promise((resolve, reject) => {
+//         if (error.message === '请求次数过多') {
+//           api.controller.abort();
+//           resolve('请求次数过多，请稍后再试');
+//         } else {
+//           reject(error);
+//         }
+//       });
+//     },
+//   };
+// };
 
-  const limitRequest = useCallback(
-    config => {
-      if (!isRequestAllowed) {
-        return Promise.reject(new Error('请求次数过多'));
-      }
-
-      setIsRequestAllowed(false);
-      setTimeout(() => {
-        setIsRequestAllowed(true);
-      }, 1000);
-
-      return config;
-    },
-    [isRequestAllowed],
-  );
-
-  return limitRequest;
-};
-
-export const throttleInterceptor: (interval: number) => RequestInterceptor = (
-  interval: number,
-) => ({
+export const DefaultHeaderInterceptor: () => RequestInterceptor = () => ({
   fulfill: () => {
-    const [isRequestAllowed, setIsRequestAllowed] = useState(true);
-    const limitRequest = useCallback(
-      (config: InternalAxiosRequestConfig) => {
-        if (!isRequestAllowed) {
-          return Promise.reject(new Error('请求次数过多'));
-        }
-        setIsRequestAllowed(false);
-        setTimeout(() => {
-          setIsRequestAllowed(true);
-        }, interval);
-        return config;
-      },
-      [isRequestAllowed],
-    );
-
-    return limitRequest;
-  },
-  reject: () => {
-    return (error: any) => {
-      return Promise.reject(error);
+    return (config: InternalAxiosRequestConfig) => {
+      config.headers['Content-Type'] = 'application/json';
+      //config.headers['X-Content-Type-Options'] = 'nosniff';
+      config.headers['Cache-Control'] = 'public, max-age=31536000';
+      return config;
     };
   },
 });
 
-export const handle404Interceptor: () => ResponseInterceptor = () => ({
+export const Ingore404Interceptor: () => ResponseInterceptor = () => ({
   fulfill: () => {
     return (response: AxiosResponse) => {
       return response;
     };
   },
-  reject: (api?: Api) => {
+  reject: (api: Api) => {
     return (error: any) => {
       if (error.response.status === 404) {
-        api?.controller.abort();
-        return Promise.reject(
-          'The resource you are looking for does not exist. Please check the URL and try again.',
-        );
+        api.controller.abort();
+        return Promise.reject(new IngoreError());
       }
       return Promise.reject(error);
     };
@@ -101,6 +103,7 @@ export const handle404Interceptor: () => ResponseInterceptor = () => ({
 
 export const useApi = () => {
   const api: Api = {
+    lastRequestTime: 0,
     instance: axios.create({
       baseURL: 'https://ventusvocatflumen.cn/api/',
       timeout: 10000,
@@ -140,8 +143,9 @@ export const useApi = () => {
       this.instance.interceptors.response.use(fulfilled, rejected);
     },
   };
-  api.addRequestInterceptor(throttleInterceptor(500));
-  api.addResponseInterceptor(handle404Interceptor());
+  //api.addRequestInterceptor(DefaultHeaderInterceptor());
+  //api.addRequestInterceptor(throttleInterceptor(1000, api));
+  api.addResponseInterceptor(Ingore404Interceptor());
   return {
     api,
   };
