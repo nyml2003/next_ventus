@@ -1,19 +1,22 @@
 import { useApi } from '@/hooks/useApi';
 import { ApiEnum } from '@/apis';
 import React, { useEffect, useState, useRef } from 'react';
-import { GetArticleListRequest, GetArticleListResponse } from '@/apis/GetArticleList';
+import { ArticleInfo, GetArticleListRequest, GetArticleListResponse } from '@/apis/GetArticleList';
 import ArticleCard from './ArticleCard';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { message } from 'antd';
 import EmptyList from '@/components/EmptyList';
 import { IngoreError } from '@/types';
 import NoMoreData from '@/components/NoMoreData';
+
 enum LoadingState {
   Loading,
   Done,
 }
 
 const smoothDelay = 1000;
+const VISIBLE_COUNT = 7; // 可视区域内显示的元素数量
+const BUFFER_COUNT = 3; // 缓冲区内显示的元素数量
 
 export interface GetArticleListRawRequest {
   page: number;
@@ -48,6 +51,9 @@ const ArticleList = () => {
   const articleRefs = useRef<(HTMLDivElement | null)[]>([]);
   const listRef = useRef<HTMLDivElement | null>(null);
   const [initialComplete, setInitialComplete] = useState(false);
+  const [startIndex, setStartIndex] = useState(0);
+  const [endIndex, setEndIndex] = useState(VISIBLE_COUNT + BUFFER_COUNT);
+
   const refresh = async () => {
     requestedPages.clear();
     setArticleList({ results: [], count: 0 });
@@ -79,9 +85,15 @@ const ArticleList = () => {
       params,
     );
     setArticleList(prev => {
+      const newRes = res.results.map(article => {
+        return {
+          ...article,
+          title: `${article.title}-${newPage}`,
+        };
+      });
       return {
         ...prev,
-        results: [...prev.results, ...res.results],
+        results: [...prev.results, ...newRes],
       };
     });
     requestedPages.add(newPage);
@@ -127,6 +139,7 @@ const ArticleList = () => {
             if (entry.target === articleRefs.current[articleRefs.current.length - 1]) {
               loadMore();
             }
+          } else {
           }
         });
       },
@@ -142,31 +155,43 @@ const ArticleList = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      // 如果滚动到顶部，加载第一页
-      if (listRef?.current?.scrollTop === 0) {
-        refresh();
+      if (listRef.current) {
+        const scrollTop = listRef.current.scrollTop;
+        const itemHeight = listRef.current.scrollHeight / articleList.results.length;
+        const newStartIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - BUFFER_COUNT);
+        const newEndIndex = Math.min(
+          articleList.results.length,
+          Math.floor(scrollTop / itemHeight) + VISIBLE_COUNT + BUFFER_COUNT,
+        );
+        setStartIndex(newStartIndex);
+        setEndIndex(newEndIndex);
       }
     };
-    // 监听 listRef.current 的滚动事件，而不是 window 的滚动事件
-    const currentListRef = listRef.current;
 
+    const currentListRef = listRef.current;
     currentListRef?.addEventListener('scroll', handleScroll);
 
     return () => {
       currentListRef?.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [articleList.results]);
+
   const renderBottom = () => {
     const noMoreDataRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
       if (loading === LoadingState.Done && !loadingMore) {
-        if (noMoreDataRef.current) {
-          listRef.current?.scrollTo({
-            top: listRef.current.scrollHeight + noMoreDataRef.current.clientHeight,
-            behavior: 'smooth',
-          });
-        }
+        // 最后一个元素滚动到可视区域
+        // if (
+        //   noMoreDataRef.current &&
+        //   listRef.current &&
+        //   listRef.current.scrollHeight > listRef.current.clientHeight
+        // ) {
+        //   listRef.current?.scrollTo({
+        //     top: listRef.current.scrollHeight + noMoreDataRef.current.clientHeight,
+        //     behavior: 'smooth',
+        //   });
+        // }
       }
     }, [loading, loadingMore]);
 
@@ -180,16 +205,27 @@ const ArticleList = () => {
       );
     }
   };
+
   const renderArticleList = () => {
-    if (articleList?.results?.length > 0) {
-      return articleList.results.map((article, index) => (
-        <div key={article.id} ref={el => (articleRefs.current[index] = el)}>
-          <ArticleCard article={article} />
-        </div>
-      ));
-    } else if (initialComplete) {
-      return <EmptyList hasRefresh={true} refresh={refresh} />;
-    }
+    const visibleArticles = articleList.results.slice(startIndex, endIndex);
+    const itemHeight = listRef.current
+      ? listRef.current.scrollHeight / articleList.results.length
+      : 0;
+    const paddingTop = startIndex * itemHeight > 0 ? startIndex * itemHeight : 0;
+    const paddingBottom =
+      (articleList.results.length - endIndex) * itemHeight > 0
+        ? (articleList.results.length - endIndex) * itemHeight
+        : 0;
+
+    return (
+      <div style={{ paddingTop, paddingBottom }}>
+        {visibleArticles.map((article, index) => (
+          <div key={article.id} ref={el => (articleRefs.current[startIndex + index] = el)}>
+            <ArticleCard article={article} />
+          </div>
+        ))}
+      </div>
+    );
   };
 
   return (
