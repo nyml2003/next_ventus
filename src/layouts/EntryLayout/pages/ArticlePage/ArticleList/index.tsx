@@ -8,6 +8,7 @@ import { message } from 'antd';
 import EmptyList from '@/components/EmptyList';
 import { IngoreError } from '@/types';
 import NoMoreData from '@/components/NoMoreData';
+import { Button, Toast } from '@douyinfe/semi-ui';
 
 enum LoadingState {
   Loading,
@@ -15,7 +16,7 @@ enum LoadingState {
 }
 
 const smoothDelay = 1000;
-const VISIBLE_COUNT = 7; // 可视区域内显示的元素数量
+const VISIBLE_COUNT = 5; // 可视区域内显示的元素数量
 const BUFFER_COUNT = 3; // 缓冲区内显示的元素数量
 
 export interface GetArticleListRawRequest {
@@ -42,7 +43,11 @@ export function getArticleListRequestAdapter(
   };
 }
 
-const ArticleList = () => {
+interface ArticleListProps {
+  height: number;
+}
+
+const ArticleList = ({ height }: ArticleListProps) => {
   const [articleList, setArticleList] = useState<GetArticleListResponse>({ results: [], count: 0 });
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(LoadingState.Done);
@@ -64,6 +69,10 @@ const ArticleList = () => {
       await fetchArticles(1);
     }, smoothDelay);
   };
+
+  useEffect(() => {
+    console.log('articleList:', articleList.results.map(article => article.id).join(','));
+  }, [articleList.results]);
 
   const fetchArticles = async (newPage: number) => {
     setLoading(LoadingState.Loading);
@@ -154,47 +163,53 @@ const ArticleList = () => {
   }, [articleList.results]);
 
   useEffect(() => {
+    //如果为空
+    const container = listRef.current;
+    if (!container) return;
     const handleScroll = () => {
-      if (listRef.current) {
-        const scrollTop = listRef.current.scrollTop;
-        const itemHeight = listRef.current.scrollHeight / articleList.results.length;
-        const newStartIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - BUFFER_COUNT);
-        const newEndIndex = Math.min(
-          articleList.results.length,
-          Math.floor(scrollTop / itemHeight) + VISIBLE_COUNT + BUFFER_COUNT,
-        );
-        setStartIndex(newStartIndex);
-        setEndIndex(newEndIndex);
+      console.log('scroll');
+    };
+    const obersever = new MutationObserver(() => {
+      if (container && container.childElementCount > 0) {
+        console.log(container);
+        console.log(container.childNodes);
+        console.log(container.scrollHeight);
+        console.log(container.clientHeight);
+
+        container.addEventListener('scroll', handleScroll);
+        requestAnimationFrame(() => {
+          container.scrollTo({
+            top: container.scrollHeight,
+            behavior: 'smooth',
+          });
+        });
       }
-    };
-
-    const currentListRef = listRef.current;
-    currentListRef?.addEventListener('scroll', handleScroll);
-
+    });
+    obersever.observe(container, { childList: true });
     return () => {
-      currentListRef?.removeEventListener('scroll', handleScroll);
+      obersever.disconnect();
+      container.removeEventListener('scroll', handleScroll);
     };
-  }, [articleList.results]);
+  }, [listRef.current]);
 
   const renderBottom = () => {
     const noMoreDataRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
       if (loading === LoadingState.Done && !loadingMore) {
-        // 最后一个元素滚动到可视区域
-        // if (
-        //   noMoreDataRef.current &&
-        //   listRef.current &&
-        //   listRef.current.scrollHeight > listRef.current.clientHeight
-        // ) {
-        //   listRef.current?.scrollTo({
-        //     top: listRef.current.scrollHeight + noMoreDataRef.current.clientHeight,
-        //     behavior: 'smooth',
-        //   });
-        // }
+        //最后一个元素滚动到可视区域;
+        if (
+          noMoreDataRef.current &&
+          listRef.current &&
+          listRef.current.scrollHeight > listRef.current.clientHeight
+        ) {
+          listRef.current?.scrollTo({
+            top: listRef.current.scrollHeight + noMoreDataRef.current.clientHeight,
+            behavior: 'smooth',
+          });
+        }
       }
     }, [loading, loadingMore]);
-
     if (loading === LoadingState.Loading) {
       return <LoadingSpinner />;
     } else if (loading === LoadingState.Done && !loadingMore) {
@@ -208,17 +223,9 @@ const ArticleList = () => {
 
   const renderArticleList = () => {
     const visibleArticles = articleList.results.slice(startIndex, endIndex);
-    const itemHeight = listRef.current
-      ? listRef.current.scrollHeight / articleList.results.length
-      : 0;
-    const paddingTop = startIndex * itemHeight > 0 ? startIndex * itemHeight : 0;
-    const paddingBottom =
-      (articleList.results.length - endIndex) * itemHeight > 0
-        ? (articleList.results.length - endIndex) * itemHeight
-        : 0;
 
     return (
-      <div style={{ paddingTop, paddingBottom }}>
+      <div className='flex flex-col overflow-y-scroll' ref={el => (listRef.current = el)}>
         {visibleArticles.map((article, index) => (
           <div key={article.id} ref={el => (articleRefs.current[startIndex + index] = el)}>
             <ArticleCard article={article} />
@@ -229,11 +236,17 @@ const ArticleList = () => {
   };
 
   return (
-    <div
-      className='flex flex-col overflow-auto h-screen hide-scrollbar'
-      ref={el => (listRef.current = el)}>
+    <div className='flex flex-col' style={{ height: height }}>
       {renderArticleList()}
       {renderBottom()}
+      <Button
+        className='fixed bottom-4 right-4'
+        onClick={() => {
+          console.log(listRef.current);
+        }}
+        title='scroll to bottom'>
+        Scroll to bottom
+      </Button>
     </div>
   );
 };

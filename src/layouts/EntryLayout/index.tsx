@@ -1,21 +1,21 @@
-import React from 'react'
-import { Button, Layout, Nav, Space, Tooltip } from '@douyinfe/semi-ui'
-import { Link, Outlet } from 'react-router-dom'
-import Router from '@/components/Router'
-import routes from './router'
-import { IconHome, IconUserGroup, IconArticle, IconGithubLogo } from '@douyinfe/semi-icons'
-import IconGame from '@/assets/icons/IconGame'
-import { useDarkMode } from '@/hooks/useDarkMode'
+import React, { useEffect, useRef } from 'react';
+import { Button, Layout, Nav, Space, Tooltip } from '@douyinfe/semi-ui';
+import { Link, Outlet } from 'react-router-dom';
+import Router from '@/components/Router';
+import routes from './router';
+import { IconHome, IconUserGroup, IconArticle, IconGithubLogo } from '@douyinfe/semi-icons';
+import IconGame from '@/assets/icons/IconGame';
+import { useDarkMode } from '@/hooks/useDarkMode';
 function openGithub() {
-  window.open('https://github.com/nyml2003')
+  window.open('https://github.com/nyml2003');
 }
 const EntryLayout = () => {
-  const { Header, Footer, Content } = Layout
-  const { toggleMode, IconDarkMode, mode } = useDarkMode()
+  const { Header, Footer, Content } = Layout;
+  const { toggleMode, IconDarkMode, mode } = useDarkMode();
   return (
-    <Layout className='flex flex-col h-screen'>
-      <Header>
-        <Nav mode='horizontal' defaultOpenKeys={['home']}>
+    <Layout className='flex flex-col h-screen overflow-hidden'>
+      <Header className='bg-white shadow-sm flex fixed h-16 w-full z-10'>
+        <Nav mode='horizontal' defaultOpenKeys={['home']} className='h-full'>
           <Nav.Header>
             <Space>
               <Link relative='path' to='/home'>
@@ -73,12 +73,19 @@ const EntryLayout = () => {
           </Nav.Footer>
         </Nav>
       </Header>
-      <Content className='flex-1'>
+      <Content className='flex mt-16 flex-col overflow-hidden'>
         <Outlet />
+        <Footer className='h-16 flex justify-center items-center bg-white'>
+          <div className='text-caption1 text-grey-2'>
+            <span className='mr-2'>© 2023 风唤长河</span>
+            <a href='http://beian.miit.gov.cn' target='_blank'>
+              {'浙ICP备2023031873号 - 1'}
+            </a>
+          </div>
+        </Footer>
       </Content>
-      <Footer>Footer</Footer>
     </Layout>
-  )
-}
+  );
+};
 
-export default EntryLayout
+export default EntryLayout;

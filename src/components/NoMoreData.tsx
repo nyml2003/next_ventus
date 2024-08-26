@@ -2,7 +2,7 @@ import React from 'react';
 
 const NoMoreData = () => {
   return (
-    <div className='flex justify-center items-center h-64 text-gray-500 select-none m-32'>
+    <div className='flex justify-center items-center text-gray-500 select-none m-16'>
       <p>---No more data---</p>
     </div>
   );

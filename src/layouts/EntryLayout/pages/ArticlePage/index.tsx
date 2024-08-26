@@ -1,11 +1,24 @@
-import { Layout, Nav } from '@douyinfe/semi-ui';
-import React from 'react';
+import React, { useRef, useState, useEffect, forwardRef } from 'react';
+
 import ArticleList from './ArticleList';
+import { Layout, Nav } from '@douyinfe/semi-ui';
 
 const ArticlePage = () => {
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const [contentHeight, setContentHeight] = useState(0);
   const { Sider, Content } = Layout;
+  const ForwardedContent = forwardRef<HTMLDivElement, any>((props, ref) => (
+    <Content {...props} ref={ref} />
+  ));
+  useEffect(() => {
+    if (contentRef.current) {
+      console.log(contentRef.current);
+      setContentHeight(contentRef.current.clientHeight);
+    }
+  }, []);
+
   return (
-    <Layout>
+    <Layout className='flex'>
       <Sider className='bg-white'>
         <Nav mode='vertical' defaultOpenKeys={['home']}>
           <Nav.Header>
@@ -16,9 +29,9 @@ const ArticlePage = () => {
           </Nav.Footer>
         </Nav>
       </Sider>
-      <Content>
-        <ArticleList />
-      </Content>
+      <ForwardedContent ref={contentRef}>
+        <ArticleList height={contentHeight} />
+      </ForwardedContent>
     </Layout>
   );
 };
