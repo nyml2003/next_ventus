@@ -101,6 +101,61 @@ export const Ingore404Interceptor: () => ResponseInterceptor = () => ({
   },
 });
 
+export const SimulateServerLagInterceptor: () => ResponseInterceptor = () => ({
+  fulfill: () => {
+    return (response: AxiosResponse) => {
+      // 模拟服务器卡顿，永远不返回
+      return new Promise<AxiosResponse>(resolve => {
+        setTimeout(() => {
+          resolve(response);
+        }, 100000);
+      });
+    };
+  },
+  reject: (api: Api) => {
+    return (error: any) => {
+      api.controller.abort();
+      return Promise.reject(error);
+    };
+  },
+});
+
+export const requestInterceptor1: RequestInterceptor = {
+  fulfill: (api: Api) => {
+    return (config: InternalAxiosRequestConfig) => {
+      console.log('requestInterceptor1');
+      return config;
+    };
+  },
+};
+
+export const requestInterceptor2: RequestInterceptor = {
+  fulfill: (api: Api) => {
+    return (config: InternalAxiosRequestConfig) => {
+      console.log('requestInterceptor2');
+      return config;
+    };
+  },
+};
+
+export const responseInterceptor1: ResponseInterceptor = {
+  fulfill: (api: Api) => {
+    return (response: AxiosResponse) => {
+      console.log('responseInterceptor1');
+      return response;
+    };
+  },
+};
+
+export const responseInterceptor2: ResponseInterceptor = {
+  fulfill: (api: Api) => {
+    return (response: AxiosResponse) => {
+      console.log('responseInterceptor2');
+      return response;
+    };
+  },
+};
+
 export const useApi = () => {
   const api: Api = {
     lastRequestTime: 0,
@@ -145,7 +200,13 @@ export const useApi = () => {
   };
   //api.addRequestInterceptor(DefaultHeaderInterceptor());
   //api.addRequestInterceptor(throttleInterceptor(1000, api));
-  api.addResponseInterceptor(Ingore404Interceptor());
+  //api.addResponseInterceptor(Ingore404Interceptor());
+  //api.addResponseInterceptor(SimulateServerLagInterceptor());
+
+  api.addRequestInterceptor(requestInterceptor1);
+  api.addRequestInterceptor(requestInterceptor2);
+  api.addResponseInterceptor(responseInterceptor1);
+  api.addResponseInterceptor(responseInterceptor2);
   return {
     api,
   };
