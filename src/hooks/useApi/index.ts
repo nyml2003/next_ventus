@@ -202,11 +202,6 @@ export const useApi = () => {
   //api.addRequestInterceptor(throttleInterceptor(1000, api));
   //api.addResponseInterceptor(Ingore404Interceptor());
   //api.addResponseInterceptor(SimulateServerLagInterceptor());
-
-  api.addRequestInterceptor(requestInterceptor1);
-  api.addRequestInterceptor(requestInterceptor2);
-  api.addResponseInterceptor(responseInterceptor1);
-  api.addResponseInterceptor(responseInterceptor2);
   return {
     api,
   };

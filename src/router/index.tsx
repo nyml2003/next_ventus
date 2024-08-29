@@ -1,12 +1,11 @@
-import { RouteConfig } from '@/types'
-import { lazy } from 'react'
-import { RouteObject } from 'react-router-dom'
-import EntryLayout from '@/layouts/EntryLayout'
-import NotFoundLayout from '@/layouts/NotFoundLayout'
-import React from 'react'
-import GamePage from '@/layouts/EntryLayout/pages/GamePage'
-import TestPage from '@/layouts/EntryLayout/pages/TestPage'
-import ArticlePage from '@/layouts/EntryLayout/pages/ArticlePage'
+import { RouteObject } from 'react-router-dom';
+import EntryLayout from '@/layouts/EntryLayout';
+import NotFoundLayout from '@/layouts/NotFoundLayout';
+import React from 'react';
+import GamePage from '@/layouts/EntryLayout/pages/GamePage';
+import TestPage from '@/layouts/EntryLayout/pages/TestPage';
+import ArticlePage from '@/layouts/EntryLayout/pages/ArticlePage';
+import FriendPage from '@/layouts/EntryLayout/pages/FriendPage';
 const routes: RouteObject[] = [
   {
     path: '/',
@@ -24,12 +23,16 @@ const routes: RouteObject[] = [
         path: 'article',
         element: <ArticlePage />,
       },
+      {
+        path: 'friend',
+        element: <FriendPage />,
+      },
     ],
   },
   {
     path: '*',
     element: <NotFoundLayout />,
   },
-]
+];
 
-export default routes
+export default routes;

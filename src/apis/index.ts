@@ -1,11 +1,12 @@
 export interface ApiConfig {
-  url: string
-  method: 'GET' | 'POST'
+  url: string;
+  method: 'GET' | 'POST';
 }
 
 export enum ApiEnum {
   GetMaze = 'GetMaze',
   GetArticleList = 'GetArticleList',
+  GetFriendList = 'GetFriendList',
 }
 
 export const ApiMap: Record<ApiEnum, ApiConfig> = {
@@ -17,4 +18,8 @@ export const ApiMap: Record<ApiEnum, ApiConfig> = {
     url: '/blog/rest/',
     method: 'GET',
   },
-}
+  GetFriendList: {
+    url: '/friend/rest/',
+    method: 'GET',
+  },
+};
