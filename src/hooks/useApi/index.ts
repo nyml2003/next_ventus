@@ -108,7 +108,7 @@ export const SimulateServerLagInterceptor: () => ResponseInterceptor = () => ({
       return new Promise<AxiosResponse>(resolve => {
         setTimeout(() => {
           resolve(response);
-        }, 100000);
+        }, 1000);
       });
     };
   },
@@ -201,7 +201,7 @@ export const useApi = () => {
   //api.addRequestInterceptor(DefaultHeaderInterceptor());
   //api.addRequestInterceptor(throttleInterceptor(1000, api));
   //api.addResponseInterceptor(Ingore404Interceptor());
-  //api.addResponseInterceptor(SimulateServerLagInterceptor());
+  api.addResponseInterceptor(SimulateServerLagInterceptor());
   return {
     api,
   };

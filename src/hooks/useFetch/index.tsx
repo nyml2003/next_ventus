@@ -4,6 +4,7 @@ import { ApiEnum, PagedRequest, PagedResponse } from '@/apis';
 import { IngoreError } from '@/types';
 import { message } from 'antd';
 import { LoadingState } from './types';
+import { title } from 'process';
 const { api } = useApi();
 const requestedPages = new Set<number>();
 
@@ -69,7 +70,12 @@ const useFetch = <
       );
       setData({
         ...data,
-        results: [...data.results, ...res.results],
+        results: [
+          ...data.results,
+          ...res.results.map(item => {
+            return { ...item, title: item.title + newPage };
+          }),
+        ],
       });
       requestedPages.add(newPage);
       setPage(newPage);

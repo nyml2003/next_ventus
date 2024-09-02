@@ -39,7 +39,7 @@ const ArticlePage = () => {
     GetArticleListRawRequest
   >({
     apiEnum: ApiEnum.GetArticleList,
-    request: { page: 1, pageSize: 3 },
+    request: { page: 1, pageSize: 10 },
     transform: getArticleListRequestAdapter,
   });
   const [activeArticle, setActiveArticle] = useState<ArticleMenuItemProps | null>(null);
