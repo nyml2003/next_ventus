@@ -23,3 +23,15 @@ export const ApiMap: Record<ApiEnum, ApiConfig> = {
     method: 'GET',
   },
 };
+
+export interface PagedResponse<T> {
+  count: number;
+  next?: string;
+  previous?: string;
+  results: T[];
+}
+
+export interface PagedRequest {
+  page: number;
+  pageSize?: number;
+}

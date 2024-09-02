@@ -15,7 +15,10 @@ const EntryLayout = () => {
   return (
     <Layout className='flex flex-col h-screen'>
       <Header className='bg-white shadow-md fixed h-16 w-full z-10'>
-        <Nav mode='horizontal' defaultOpenKeys={['home']} className='h-full'>
+        <Nav
+          mode='horizontal'
+          defaultOpenKeys={['home']}
+          className='h-full overflow-x-auto hide-scrollbar'>
           <Nav.Header>
             <Space>
               <Link relative='path' to='/home'>

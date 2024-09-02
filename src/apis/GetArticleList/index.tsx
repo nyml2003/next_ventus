@@ -1,3 +1,5 @@
+import { PagedResponse } from '..';
+
 export interface GetArticleListRequest {
   page: number;
   page_size?: number;
@@ -6,12 +8,7 @@ export interface GetArticleListRequest {
   order?: string;
 }
 
-export interface GetArticleListResponse {
-  count: number;
-  next?: string;
-  previous?: string;
-  results: ArticleInfo[];
-}
+export interface GetArticleListResponse extends PagedResponse<ArticleInfo> {}
 
 export interface ArticleInfo {
   id: number;
